@@ -7,11 +7,24 @@ c disordered (P), respectively. Also the summed P classified distance
 c is calculated with and without Uπ (π–π and π-cation contributions)
 c and Uq (charge-based contributions).
 c
+c Program input:
+c
+c primary sequence, no gaps, restricted to the 20 common amino acid types
+c minimum length = 25
+c maximum length = 10000
+c
 c Program output:
 c
+c Converted sequence
 c Summed classifier distance of P-labeled windows (∑ P)
-c Summed classifier distance + Uπ + Uq of P-labeled windows (∑ P+Uπ+Uq)
-c CSV file of Residue number, Amino Acid type, Residue label, ∑ P, Residue label w/ Uπ+Uq effects, ∑ P+Uπ+Uq
+c Summed classifier distance of P-labeled windows + Uπ + Uq correction (∑ P+Uπ+Uq)
+c CSV file of Residue number, Amino Acid type, Residue label, ∑ P, Residue label w/ Uπ+Uq corrections, ∑ P+Uπ+Uq
+c
+c To use Parse_v2:
+c
+c Compile Parse_v2.f using a fortran compiler. The program was tested using GNU Fortran (Homebrew GCC 11.3.0_2) 11.3.0.
+c Run the program at a command prompt, by using the executable followed by the protein primary sequence.
+c For example "./a.out SEQUENCESEQUENCESEQUENCESEQUENCE"
 c
 c
 c STW 03/30/2022
@@ -151,6 +164,23 @@ c  Determine sequence length.
       enddo 
       npep=j
 
+c restrict protein sequence to the 20 common amino acid types; check for numbers too
+
+      do i=1,npep
+      if (code(i).eq.'B'.or.code(i).eq.'J'.or.code(i).eq.'O'.or.
+     &    code(i).eq.'U'.or.code(i).eq.'X'.or.code(i).eq.'Z'.or.
+     &    code(i).eq.'1'.or.code(i).eq.'2'.or.code(i).eq.'3'.or.
+     &    code(i).eq.'4'.or.code(i).eq.'5'.or.code(i).eq.'6'.or.
+     &    code(i).eq.'7'.or.code(i).eq.'8'.or.code(i).eq.'9'.or.
+     &    code(i).eq.'0') then
+      write(*,*)' '
+      write(*,*)'could not parse sequence'
+      write(*,*)'sequence contains noncommon amino acid type'
+      write(*,*)' '
+      stop
+      endif
+      enddo
+
 c Define window size.
 
       window_size=25
@@ -159,6 +189,7 @@ c if protein sequence is less than the window size, stop
 
       if (npep.lt.window_size) then
       write(*,*)' '
+      write(*,*)'could not parse sequence'
       write(*,*)'input sequence is too short'
       write(*,*)'minimum sequence length is ',window_size
       write(*,*)' '
@@ -169,6 +200,7 @@ c if protein sequence is too long, stop
 
       if (npep.gt.10000) then
       write(*,*)' '
+      write(*,*)'could not parse sequence'
       write(*,*)'input sequence is too long'
       write(*,*)'maximum sequence length is 10000'
       write(*,*)' '
@@ -551,7 +583,7 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
       write(*,'("Sequence length ",i6)')npep
       write(*,'("∑ classifier distance of P-labeled windows ",f10.3)')
      & p_dist_sum
-      write(*,'("∑ classifier distance +Uπ+Uq of P-labeled windows ",
+      write(*,'("∑ classifier distance of P-labeled windows +Uπ +Uq ",
      &      f10.3)')p_pi_q_dist_sum
 
       open (7,file='residue_level_∑_class_dist.csv')
