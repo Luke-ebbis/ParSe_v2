@@ -16,9 +16,9 @@ c
 c Program output:
 c
 c Converted sequence
-c Summed classifier distance of P-labeled windows (∑ P)
-c Summed classifier distance of P-labeled windows + Uπ + Uq correction (∑ P+Uπ+Uq)
-c CSV file of Residue number, Amino Acid type, Residue label, ∑ P, Residue label w/ Uπ+Uq corrections, ∑ P+Uπ+Uq
+c Summed classifier distance of P-labeled windows
+c Summed classifier distance of P-labeled windows with Uπ and Uq corrections
+c CSV file of Residue number, Amino Acid type, Residue label, Classifier Distance, Residue label (w/ Uπ Uq corrections), Classifier Distance (w/ Uπ Uq corrections)
 c
 c To use Parse_v2:
 c
