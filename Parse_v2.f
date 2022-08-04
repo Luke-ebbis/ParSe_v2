@@ -586,7 +586,7 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
       write(*,'("∑ classifier distance of P-labeled windows +Uπ +Uq ",
      &      f10.3)')p_pi_q_dist_sum
 
-      open (7,file='residue_level_∑_class_dist.csv')
+      open (7,file='residue_label_classifier_distance.csv')
       do j=1,npep
       write(7,'(i6,", ",a1,", ",a1,",",f8.3,", ",a1,",",f8.3)')j,
      & code(j),classification(j),dist_norm(j),
