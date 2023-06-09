@@ -548,7 +548,7 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
          dist_norm_pi_q(middle_position)=U_pi+U_q
      &                 -dist_norm(middle_position)
          endif
-         
+
          if (dist_norm(middle_position).lt.(U_pi_csat+U_q_csat)) then
             classification_pi_q_csat(middle_position)='P'
             p_pi_q_csat_dist_sum=p_pi_q_csat_dist_sum
