@@ -613,7 +613,7 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
       write(*,*)' '
       write(*,'("Including Uπ + Uq extension (csat trained):")')
       write(*,'(11000a1)')(classification_pi_q_csat(j),j=1,npep)
-      
+
       write(*,*)' '
       write(*,'("Sequence length ",i6)')npep
       write(*,'("∑ classifier distance of P-labeled windows ",f10.3)')
