@@ -8,5 +8,5 @@ Program output:
 
 Converted sequence
 Summed classifier distance of P-labeled windows
-Summed classifier distance of P-labeled windows with Uπ and Uq corrections
-CSV file of Residue number, Amino Acid type, Residue label, Classifier Distance, Residue label (w/ Uπ Uq corrections), Classifier Distance (w/ Uπ Uq corrections)
+Summed classifier distance of P-labeled windows with Uπ and Uq extension
+CSV file of Residue number, Amino Acid type, Residue label, Classifier Distance, Residue label (w/ Uπ Uq extension), Classifier Distance (w/ Uπ Uq extension)
