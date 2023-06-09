@@ -538,6 +538,9 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
      &      sqrt((helix-x)*(helix-x)+(nu_model-y)*(nu_model-y))/
      &      ID_dist
          dist_norm_pi_q(middle_position)=dist_norm(middle_position)
+         dist_norm_pi_q_csat(middle_position)=
+     &      dist_norm(middle_position)
+         endif
 
          if (dist_norm(middle_position).lt.(U_pi+U_q)) then
             classification_pi_q(middle_position)='P'
@@ -545,8 +548,6 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
      &      +U_pi+U_q-dist_norm(middle_position)
          dist_norm_pi_q(middle_position)=U_pi+U_q
      &                 -dist_norm(middle_position)
-         dist_norm_pi_q_csat(middle_position)=
-     &      dist_norm(middle_position)
          endif
          
          if (dist_norm(middle_position).lt.(U_pi_csat+U_q_csat)) then
