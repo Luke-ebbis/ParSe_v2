@@ -46,8 +46,9 @@ c----------------------------------------------------------------
      &        f_start(10000),f_end(10000),count_domains,low,
      &        domain(10000),i,j,jj,jjj,jjjj
       character code_inp*11000,code(11000)*3,classification(11000)*3,
-     &          classification_pi_q(11000)*3
-      real pppiia_h,pppiip_h,pppiig_h,pppiic_h,pppiid_h,pppiie_h,
+     &          classification_pi_q(11000)*3,
+     &          classification_pi_q_csat(11000)*3
+     real pppiia_h,pppiip_h,pppiig_h,pppiic_h,pppiid_h,pppiie_h,
      &     pppiif_h,pppiih_h,pppiii_h,pppiik_h,pppiil_h,pppiim_h,
      &     pppiin_h,pppiiq_h,pppiir_h,pppiis_h,pppiit_h,pppiiv_h,
      &     pppiiw_h,pppiiy_h,sum_ppii,v_exponent,fppii,nu_model,
@@ -60,8 +61,8 @@ c----------------------------------------------------------------
      &     percent_p,percent_cutoff,net_charge_w,dist_norm(10000),
      &     rh_w,helix,hydr,ID_dist,PS_dist,p_dist_sum,U_pi,U_q,
      &     RY,RF,KY,KF,FY,lambda_1,lambda_2,ncpr_w,scd_w,
-     &     p_pi_q_dist_sum,dist_norm_pi_q(10000)
-
+     &     p_pi_q_dist_sum,dist_norm_pi_q(10000),U_pi_csat,
+     &     U_q_csat,p_pi_q_csat_dist_sum,dist_norm_pi_q_csat(10000)
 
 c PPII bias measured in peptides by Hilser group; used to calculate Rh and then nu_model.
 c Prot Sci 2013, vol 22, pgs 405-417, in a table in supplementary information
@@ -209,6 +210,7 @@ c if protein sequence is too long, stop
 
       p_dist_sum=0.0
       p_pi_q_dist_sum=0.0
+      p_pi_q_csat_dist_sum=0.0
 
 
 c calculate hydrophobicity, nu_model, helix propensity, U_pi and Uq for each 25-residue window
@@ -329,12 +331,15 @@ c dist_norm is the distance from the sector boundary, normalized by the distance
       if(hydr.ge.(0.08280152)) then
         classification(middle_position)='F'
         classification_pi_q(middle_position)='F'
+        classification_pi_q_csat(middle_position)='F'
         dist_norm(middle_position)=(hydr-0.08280152)/(0.01679414*2.0)
         dist_norm_pi_q(middle_position)=dist_norm(middle_position)
+        dist_norm_pi_q_csat(middle_position)=dist_norm(middle_position)
         goto 10
       endif
  
 c Calculate U_pi (trained against ∆h° data) that models π-π and cation-π effects
+c Calculate U_pi_csat (trained against csat data)
 
          RY=0.0
          RF=0.0
@@ -369,9 +374,11 @@ c Calculate U_pi (trained against ∆h° data) that models π-π and cation-π e
          endif
 
          U_pi=3.0*RY + 2.0*KY + 2.0*RF + 1.0*KF + 1.0*FY
+         U_pi_csat=0.28*U_pi
          U_pi=0.137*U_pi
 
 c Calculate U_q (trained against ∆h° data) that models charge effects by NCPR and SCD
+c Calculate U_q_csat (trained against csat data)
 
       scd_w=0.0
       do jjj=j,j+window_size-1
@@ -429,6 +436,7 @@ c Calculate U_q (trained against ∆h° data) that models charge effects by NCPR
       ncpr_w=real(net_charge_w)/real(window_size)
 
       U_q=8.4*scd_w+5.6*ncpr_w
+      U_q_csat=-16.0*scd_w+33.0*ncpr_w
 
 c calculate nu_model
 
@@ -525,6 +533,7 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
       if(((nu_model-0.7885823)/(-0.244078945)).le.(helix)) then
          classification(middle_position)='D'
          classification_pi_q(middle_position)='D'
+         classification_pi_q_csat(middle_position)='D'
          dist_norm(middle_position)=
      &      sqrt((helix-x)*(helix-x)+(nu_model-y)*(nu_model-y))/
      &      ID_dist
@@ -536,20 +545,35 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
      &      +U_pi+U_q-dist_norm(middle_position)
          dist_norm_pi_q(middle_position)=U_pi+U_q
      &                 -dist_norm(middle_position)
+         dist_norm_pi_q_csat(middle_position)=
+     &      dist_norm(middle_position)
+         endif
+         
+         if (dist_norm(middle_position).lt.(U_pi_csat+U_q_csat)) then
+            classification_pi_q_csat(middle_position)='P'
+            p_pi_q_csat_dist_sum=p_pi_q_csat_dist_sum
+     &      +U_pi_csat+U_q_csat-dist_norm(middle_position)
+         dist_norm_pi_q_csat(middle_position)=U_pi_csat+U_q_csat
+     &                 -dist_norm(middle_position)
          endif
 
          goto 10
       else
          classification(middle_position)='P'
          classification_pi_q(middle_position)='P'
+         classification_pi_q_csat(middle_position)='P'
          dist_norm(middle_position)=
      &      sqrt((helix-x)*(helix-x)+(nu_model-y)*(nu_model-y))/
      &      PS_dist
          dist_norm_pi_q(middle_position)=U_pi+U_q
      &                 +dist_norm(middle_position)
+         dist_norm_pi_q_csat(middle_position)=U_pi_csat+U_q_csat
+     &                 +dist_norm(middle_position)
             p_dist_sum=p_dist_sum+dist_norm(middle_position)
             p_pi_q_dist_sum=p_pi_q_dist_sum
      &                 +dist_norm_pi_q(middle_position)
+            p_pi_q_csat_dist_sum=p_pi_q_csat_dist_sum
+     &                 +dist_norm_pi_q_csat(middle_position)
          goto 10
       endif
 
@@ -560,14 +584,22 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
       do j=1,window_size/2
          classification(j)=classification((window_size/2)+1)
          classification_pi_q(j)=classification_pi_q((window_size/2)+1)
+         classification_pi_q_csat(j)=
+     &      classification_pi_q_csat((window_size/2)+1)
          dist_norm(j)=dist_norm((window_size/2)+1)
          dist_norm_pi_q(j)=dist_norm_pi_q((window_size/2)+1)
+         dist_norm_pi_q_csat(j)=dist_norm_pi_q_csat((window_size/2)+1)
       enddo
       do j=npep-(window_size/2)+1,npep
          classification(j)=classification(npep-(window_size/2))
-      classification_pi_q(j)=classification_pi_q(npep-(window_size/2))
+         classification_pi_q(j)=
+     &      classification_pi_q(npep-(window_size/2))
+         classification_pi_q_csat(j)=
+     &      classification_pi_q_csat(npep-(window_size/2))
          dist_norm(j)=dist_norm(npep-(window_size/2))
          dist_norm_pi_q(j)=dist_norm_pi_q(npep-(window_size/2))
+         dist_norm_pi_q_csat(j)=
+     &      dist_norm_pi_q_csat(npep-(window_size/2))
       enddo
 
 
@@ -575,22 +607,29 @@ c and perpendicular (y=mx+b). Two equations, two unknowns, thus easily solved.
       write(*,'(11000a1)')(classification(j),j=1,npep)
 
       write(*,*)' '
-      write(*,'("Including Uπ + Uq effects:")')
+      write(*,'("Including Uπ + Uq extension (∆h° trained):")')
       write(*,'(11000a1)')(classification_pi_q(j),j=1,npep)
 
-
+      write(*,*)' '
+      write(*,'("Including Uπ + Uq extension (csat trained):")')
+      write(*,'(11000a1)')(classification_pi_q_csat(j),j=1,npep)
+      
       write(*,*)' '
       write(*,'("Sequence length ",i6)')npep
       write(*,'("∑ classifier distance of P-labeled windows ",f10.3)')
      & p_dist_sum
       write(*,'("∑ classifier distance of P-labeled windows +Uπ +Uq ",
-     &      f10.3)')p_pi_q_dist_sum
+     &      "(∆h° trained)",f10.3)')p_pi_q_dist_sum
+      write(*,'("∑ classifier distance of P-labeled windows +Uπ +Uq ",
+     &      "(csat trained)",f10.3)')p_pi_q_csat_dist_sum
 
       open (7,file='residue_label_classifier_distance.csv')
       do j=1,npep
-      write(7,'(i6,", ",a1,", ",a1,",",f8.3,", ",a1,",",f8.3)')j,
+      write(7,'(i6,", ",a1,", ",a1,",",f8.3,", ",a1,",",f8.3,
+     & ", ",a1,",",f8.3)')j,
      & code(j),classification(j),dist_norm(j),
-     & classification_pi_q(j),dist_norm_pi_q(j)
+     & classification_pi_q(j),dist_norm_pi_q(j),
+     & classification_pi_q_csat(j),dist_norm_pi_q_csat(j)
       enddo
       close(7)
 
