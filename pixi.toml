@@ -1,0 +1,17 @@
+[project]
+name = "Parse"
+version = "2.0.0"
+description = "A programme to calculate the tendency to form LLPS."
+authors = ["Steve Whitten et al"]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tasks]
+compile = "gfortran Parse.f"
+predict = {cmd = "./a.out", depends_on = "compile"}
+
+[dependencies]
+gfortran = "11.1.0.*"
+
+[system-requirements]
+linux="4.18"
